@@ -44,7 +44,7 @@ URL_BLPARAM=http://jeff.doozan.com/debian/uboot/blparam
 URL_UBOOT=http://jeff.doozan.com/debian/uboot/install_uboot_mtd0.sh
 
 URL_KERNEL=http://jeff.doozan.com/debian/linux-image-2.6.32-dockstar_1.1_armel.deb
-URL_DEBOOTSTRAP=http://ftp.us.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.23_all.deb
+URL_DEBOOTSTRAP=http://ftp.us.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb
 URL_MKIMAGE=http://ftp.us.debian.org/debian/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb
 URL_ENVTOOLS=http://ftp.us.debian.org/debian/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb
 
