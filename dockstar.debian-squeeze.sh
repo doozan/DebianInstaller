@@ -29,12 +29,25 @@
 # Definitions
 
 # Download locations
+<<<<<<< HEAD
 MKE2FS_URL=http://jeff.doozan.com/debian/mke2fs
 BLPARAM_URL=http://jeff.doozan.com/debian/uboot/blparam
 PKGDETAILS_URL=http://jeff.doozan.com/debian/pkgdetails
 URL_UBOOT=http://jeff.doozan.com/debian/uboot/install_uboot_mtd0.sh
 URL_DEBOOTSTRAP=http://ftp.us.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb
 URL_FW_CONFIG=http://jeff.doozan.com/debian/uboot/fw_env.config
+=======
+MIRROR="http://jeff.doozan.com"
+
+DEB_MIRROR="http://ftp.us.debian.org"
+
+MKE2FS_URL="$MIRROR/debian/mke2fs"
+BLPARAM_URL="$MIRROR/debian/uboot/blparam"
+PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
+URL_UBOOT="$MIRROR/debian/uboot/install_uboot_mtd0.sh"
+URL_DEBOOTSTRAP="${DEB_MIRROR}/debian/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
+URL_FW_CONFIG="$MIRROR/debian/uboot/fw_env.config"
+>>>>>>> 02c2b7a... introduce MIRROR variables
 
 # Default binary locations
 MKE2FS=/sbin/mke2fs
@@ -47,7 +60,6 @@ ROOT=/tmp/debian
 # debootstrap configuration
 RELEASE=squeeze
 VARIANT=minbase
-MIRROR=http://ftp.us.debian.org/debian/
 
 # if you want to install additional packages, add them to the end of this list
 EXTRA_PACKAGES=linux-image-2.6-kirkwood,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
@@ -348,7 +360,7 @@ echo ""
 echo "# Starting debootstrap installation"
 
 # Squeeze
-/usr/sbin/debootstrap --verbose --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $MIRROR
+/usr/sbin/debootstrap --verbose --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
 
 if [ "$?" -ne "0" ]; then
   echo "debootstrap failed."
