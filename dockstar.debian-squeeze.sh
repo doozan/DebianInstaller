@@ -29,16 +29,16 @@
 # Definitions
 
 # Download locations
-MIRROR="http://jeff.doozan.com"
+MIRROR="http://jeff.doozan.com/debian"
 
-DEB_MIRROR="http://ftp.us.debian.org"
+DEB_MIRROR="http://ftp.us.debian.org/debian"
 
-MKE2FS_URL="$MIRROR/debian/mke2fs"
-BLPARAM_URL="$MIRROR/debian/uboot/blparam"
-PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
-URL_UBOOT="$MIRROR/debian/uboot/install_uboot_mtd0.sh"
-URL_DEBOOTSTRAP="${DEB_MIRROR}/debian/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
-URL_FW_CONFIG="$MIRROR/debian/uboot/fw_env.config"
+MKE2FS_URL="$MIRROR/mke2fs"
+BLPARAM_URL="$MIRROR/uboot/blparam"
+PKGDETAILS_URL="$MIRROR/pkgdetails"
+URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
+URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"
 
 # Default binary locations
 MKE2FS=/sbin/mke2fs

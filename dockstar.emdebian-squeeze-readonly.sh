@@ -39,17 +39,17 @@ EXTRA_PACKAGES=linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netba
 
 
 # Download URLs
-MIRROR="http://jeff.doozan.com"
-DEB_MIRROR="http://ftp.us.debian.org"
+MIRROR="http://jeff.doozan.com/debian"
+DEB_MIRROR="http://ftp.us.debian.org/debian"
 
-URL_MKE2FS="$MIRROR/debian/mke2fs"
-URL_BLPARAM="$MIRROR/debian/uboot/blparam"
-URL_UBOOT="$MIRROR/debian/uboot/install_uboot_mtd0.sh"
+URL_MKE2FS="$MIRROR/mke2fs"
+URL_BLPARAM="$MIRROR/uboot/blparam"
+URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 
-URL_KERNEL="$MIRROR/debian/linux-image-2.6.32-dockstar_1.1_armel.deb"
-URL_DEBOOTSTRAP="$DEB_MIRROR/debian/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
-URL_MKIMAGE="$DEB_MIRROR/debian/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
-URL_ENVTOOLS="$DEB_MIRROR/debian/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb"
+URL_KERNEL="$MIRROR/linux-image-2.6.32-dockstar_1.1_armel.deb"
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
+URL_MKIMAGE="$DEB_MIRROR/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
+URL_ENVTOOLS="$DEB_MIRROR/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb"
 
 KERNEL_VERSION=2.6.32-dockstar
 

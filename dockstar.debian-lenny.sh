@@ -50,14 +50,14 @@
 #URL_SHEEVA_MODULES=http://sheeva.with-linux.com/sheeva/2.6.33/2.6.33-Modules.tar.gz
 
 # Download from package mirror
-MIRROR="http://jeff.doozan.com"
+MIRROR="http://jeff.doozan.com/debian"
 
-URL_MKE2FS="$MIRROR/debian/mke2fs"
-URL_BLPARAM="$MIRROR/debian/uboot/blparam"
-URL_UBOOT="$MIRROR/debian/uboot/install_uboot_mtd0.sh"
-URL_DEBIAN_BASE="$MIRROR/debian/lenny/base.tar.bz2"
-URL_SHEEVA_UIMAGE="$MIRROR/debian/lenny/sheeva-2.6.33-uImage"
-URL_SHEEVA_MODULES="$MIRROR/debian/lenny/sheeva-2.6.33-Modules.tar.gz"
+URL_MKE2FS="$MIRROR/mke2fs"
+URL_BLPARAM="$MIRROR/uboot/blparam"
+URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
+URL_DEBIAN_BASE="$MIRROR/lenny/base.tar.bz2"
+URL_SHEEVA_UIMAGE="$MIRROR/lenny/sheeva-2.6.33-uImage"
+URL_SHEEVA_MODULES="$MIRROR/lenny/sheeva-2.6.33-Modules.tar.gz"
 
 
 # Where should the temporary 'debian root' be mounted
