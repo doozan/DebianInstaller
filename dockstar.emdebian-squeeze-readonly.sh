@@ -35,7 +35,8 @@ EMB_MIRROR=http://www.emdebian.org/grip/
 
 # if you want to install additional packages, add them to the end of this list
 # Note: Not all packages are available in the embdebian repository
-EXTRA_PACKAGES=linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
+EXTRA_PACKAGES=linux-image-2.6-kirkwood,flash-kernel,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
+KERNEL_VERSION=2.6.32-5-kirkwood
 
 
 # Download URLs
@@ -45,16 +46,12 @@ DEB_MIRROR="http://ftp.us.debian.org/debian"
 URL_MKE2FS="$MIRROR/mke2fs"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 
-URL_KERNEL="$MIRROR/linux-image-2.6.32-dockstar_1.1_armel.deb"
 URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
 URL_MKIMAGE="$DEB_MIRROR/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
 URL_ENVTOOLS="$DEB_MIRROR/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb"
 
-KERNEL_VERSION=2.6.32-dockstar
-
 # Where should the temporary 'debian root' be mounted
 ROOT=/tmp/debian
-
 
 
 
@@ -239,11 +236,6 @@ chroot $ROOT /usr/bin/apt-get update
 chroot $ROOT /usr/bin/apt-get -y --force-yes upgrade
 chroot $ROOT /usr/bin/apt-get clean
 
-#Install kernel package
-wget -O $ROOT/tmp/kernel.deb $URL_KERNEL
-chroot $ROOT /usr/bin/dpkg -i /tmp/kernel.deb
-rm $ROOT/tmp/kernel.deb
-
 #Install mkimage
 wget -O $ROOT/tmp/mkimage.deb $URL_MKIMAGE
 chroot $ROOT /usr/bin/dpkg -i /tmp/mkimage.deb
@@ -317,6 +309,18 @@ cat <<END > $ROOT/etc/fstab
 
 END
 
+cat <<END > $ROOT/etc/kernel/postinit.d/zz-flash-kernel
+#!/bin/sh
+
+version="$1"
+bootopt=""
+
+# passing the kernel version is required
+[ -z "${version}" ] && exit 0
+
+echo "Running flash-kernel ${version}"
+flash-kernel ${version}
+END
 
 # Create /sbin/init-ro script mount serveral directories as tmfps
 

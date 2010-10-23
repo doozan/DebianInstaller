@@ -52,9 +52,7 @@ VARIANT=minbase
 
 # if you want to install additional packages, add them to the end of this list
 EXTRA_PACKAGES=linux-image-2.6-kirkwood,flash-kernel,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
-
-
-
+KERNEL_VERSION=2.6.32-5-kirkwood
 
 
 
@@ -362,8 +360,8 @@ APT::Install-Recommends "0";
 APT::Install-Suggests "0";
 END
 
-chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-2.6.32-5 -d /boot/vmlinuz-2.6.32-5-kirkwood /boot/uImage
-chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs -d /boot/initrd.img-2.6.32-5-kirkwood /boot/uInitrd
+chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-$KERNEL_VERSION -d /boot/vmlinuz-$KERNEL_VERSION /boot/uImage
+chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
 
 
 echo debian > $ROOT/etc/hostname
@@ -389,6 +387,18 @@ $SWAP_DEV      none            swap    sw                0       0
 tmpfs          /tmp            tmpfs   defaults          0       0
 END
 
+cat <<END > $ROOT/etc/kernel/postinit.d/zz-flash-kernel
+#!/bin/sh
+
+version="$1"
+bootopt=""
+
+# passing the kernel version is required
+[ -z "${version}" ] && exit 0
+
+echo "Running flash-kernel ${version}"
+flash-kernel ${version}
+END
 
 echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
 sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
