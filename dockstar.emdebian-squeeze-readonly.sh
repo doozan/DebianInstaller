@@ -43,7 +43,6 @@ MIRROR="http://jeff.doozan.com/debian"
 DEB_MIRROR="http://ftp.us.debian.org/debian"
 
 URL_MKE2FS="$MIRROR/mke2fs"
-URL_BLPARAM="$MIRROR/uboot/blparam"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 
 URL_KERNEL="$MIRROR/linux-image-2.6.32-dockstar_1.1_armel.deb"
@@ -261,10 +260,6 @@ $ROOT/usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x0000
 #Remove the non-image kernel files
 rm $ROOT/boot/vmlinuz-$KERNEL_VERSION
 rm $ROOT/boot/initrd.img-$KERNEL_VERSION
-
-# Install blparam
-wget -O $ROOT/usr/local/bin/blparam $URL_BLPARAM
-chmod +x $ROOT/usr/local/bin/blparam
 
 
 ##########

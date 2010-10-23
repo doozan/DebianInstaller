@@ -34,7 +34,6 @@ MIRROR="http://jeff.doozan.com/debian"
 DEB_MIRROR="http://ftp.us.debian.org/debian"
 
 MKE2FS_URL="$MIRROR/mke2fs"
-BLPARAM_URL="$MIRROR/uboot/blparam"
 PKGDETAILS_URL="$MIRROR/pkgdetails"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
@@ -42,7 +41,6 @@ URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"
 
 # Default binary locations
 MKE2FS=/sbin/mke2fs
-BLPARAM=/usr/sbin/blparam
 PKGDETAILS=/usr/share/debootstrap/pkgdetails
 
 # Where should the temporary 'debian root' be mounted
@@ -53,7 +51,7 @@ RELEASE=squeeze
 VARIANT=minbase
 
 # if you want to install additional packages, add them to the end of this list
-EXTRA_PACKAGES=linux-image-2.6-kirkwood,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
+EXTRA_PACKAGES=linux-image-2.6-kirkwood,flash-kernel,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
 
 
 
@@ -296,7 +294,6 @@ if ! which mke2fs >/dev/null; then
 else
   MKE2FS=$(which mke2fs)
 fi
-install "$BLPARAM"        "$BLPARAM_URL"         755
 
 $MKE2FS $ROOT_DEV
 /sbin/mkswap $SWAP_DEV
@@ -368,10 +365,6 @@ END
 chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-2.6.32-5 -d /boot/vmlinuz-2.6.32-5-kirkwood /boot/uImage
 chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs -d /boot/initrd.img-2.6.32-5-kirkwood /boot/uInitrd
 
-
-# Install blparam
-wget -O $ROOT/usr/local/bin/blparam $BLPARAM_URL
-chmod +x $ROOT/usr/local/bin/blparam
 
 echo debian > $ROOT/etc/hostname
 echo LANG=C > $ROOT/etc/default/locale

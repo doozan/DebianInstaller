@@ -44,7 +44,6 @@
 
 # Original package sources
 #URL_MKE2FS=http://plugapps.com/os/pogoplug/mke2fs
-#URL_BLPARAM=http://plugapps.com/os/pogoplug/uboot/blpararm
 #URL_DEBIAN_BASE=http://people.debian.org/~tbm/sheevaplug/lenny/base.tar.bz2
 #URL_SHEEVA_UIMAGE=http://sheeva.with-linux.com/sheeva/2.6.33/2.6.33-uImage
 #URL_SHEEVA_MODULES=http://sheeva.with-linux.com/sheeva/2.6.33/2.6.33-Modules.tar.gz
@@ -53,7 +52,6 @@
 MIRROR="http://jeff.doozan.com/debian"
 
 URL_MKE2FS="$MIRROR/mke2fs"
-URL_BLPARAM="$MIRROR/uboot/blparam"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 URL_DEBIAN_BASE="$MIRROR/lenny/base.tar.bz2"
 URL_SHEEVA_UIMAGE="$MIRROR/lenny/sheeva-2.6.33-uImage"
