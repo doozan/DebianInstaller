@@ -387,7 +387,7 @@ $SWAP_DEV      none            swap    sw                0       0
 tmpfs          /tmp            tmpfs   defaults          0       0
 END
 
-cat <<END > $ROOT/etc/kernel/postinit.d/zz-flash-kernel
+cat <<END > $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 #!/bin/sh
 
 version="$1"

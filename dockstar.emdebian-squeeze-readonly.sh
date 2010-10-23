@@ -309,7 +309,7 @@ cat <<END > $ROOT/etc/fstab
 
 END
 
-cat <<END > $ROOT/etc/kernel/postinit.d/zz-flash-kernel
+cat <<END > $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 #!/bin/sh
 
 version="$1"
