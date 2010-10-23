@@ -321,6 +321,7 @@ bootopt=""
 echo "Running flash-kernel ${version}"
 flash-kernel ${version}
 END
+chmod +x $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 
 # Create /sbin/init-ro script mount serveral directories as tmfps
 

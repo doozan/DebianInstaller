@@ -399,6 +399,7 @@ bootopt=""
 echo "Running flash-kernel ${version}"
 flash-kernel ${version}
 END
+chmod +x $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 
 echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
 sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
