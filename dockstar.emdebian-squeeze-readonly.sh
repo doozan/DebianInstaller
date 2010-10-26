@@ -374,7 +374,7 @@ sed -i 's|^exit 0|echo none > /sys/class/leds/dockstar\:orange\:health/trigger\n
 ##### Configure boot environment
 
 fw_setenv usb_root "$ROOT_DEV ro"
-fw_setenv set_bootargs_usb 'setenv bootargs console=$console root=$usb_root rootdelay=$usb_rootdelay rootfstype=$usb_rootfstype $mtdparts init=/sbin/init-ro'
+fw_setenv usb_set_bootargs 'setenv bootargs console=$console root=$usb_root rootdelay=$usb_rootdelay rootfstype=$usb_rootfstype $mtdparts init=/sbin/init-ro'
 
 ##### All Done
 
