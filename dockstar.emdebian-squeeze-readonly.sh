@@ -35,7 +35,7 @@ EMB_MIRROR=http://www.emdebian.org/grip/
 
 # if you want to install additional packages, add them to the end of this list
 # Note: Not all packages are available in the embdebian repository
-EXTRA_PACKAGES=linux-image-2.6-kirkwood,flash-kernel,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
+EXTRA_PACKAGES=linux-image-2.6-kirkwood,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
 KERNEL_VERSION=2.6.32-5-kirkwood
 
 
@@ -46,7 +46,7 @@ DEB_MIRROR="http://ftp.us.debian.org/debian"
 URL_MKE2FS="$MIRROR/mke2fs"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 
-URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.26_all.deb"
 URL_MKIMAGE="$DEB_MIRROR/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
 URL_ENVTOOLS="$DEB_MIRROR/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb"
 

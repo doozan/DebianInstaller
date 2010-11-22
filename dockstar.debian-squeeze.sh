@@ -31,12 +31,12 @@
 # Download locations
 MIRROR="http://jeff.doozan.com/debian"
 
-DEB_MIRROR="http://ftp.us.debian.org/debian"
+DEB_MIRROR="http://cdn.debian.net/debian"
 
 MKE2FS_URL="$MIRROR/mke2fs"
 PKGDETAILS_URL="$MIRROR/pkgdetails"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
-URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.25_all.deb"
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.26_all.deb"
 URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"
 
 # Default binary locations
