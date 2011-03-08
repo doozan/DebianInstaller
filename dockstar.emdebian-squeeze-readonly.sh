@@ -10,10 +10,10 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ EMB_MIRROR=http://www.emdebian.org/grip/
 
 # if you want to install additional packages, add them to the end of this list
 # Note: Not all packages are available in the embdebian repository
-EXTRA_PACKAGES=linux-image-2.6-kirkwood,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
+EXTRA_PACKAGES=linux-image-2.6-kirkwood,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp3-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
 KERNEL_VERSION=2.6.32-5-kirkwood
 
 
@@ -215,6 +215,7 @@ echo "# Starting debootstrap installation"
 # Embdebian Grip (Squeeze)
 
 mkdir -p $ROOT/usr/share/info
+mkdir -p $ROOT/usr/share/man/man1
 /usr/sbin/debootstrap --verbose --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $EMB_MIRROR
 
 if [ "$?" -ne "0" ]; then
@@ -246,8 +247,9 @@ wget -O $ROOT/tmp/envtools.deb $URL_ENVTOOLS
 chroot $ROOT /usr/bin/dpkg -i /tmp/envtools.deb
 rm $ROOT/tmp/envtools.deb
 
-$ROOT/usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-$KERNEL_VERSION -d $ROOT/boot/vmlinuz-$KERNEL_VERSION $ROOT/boot/uImage
-$ROOT/usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d $ROOT/boot/initrd.img-$KERNEL_VERSION $ROOT/boot/uInitrd
+#Prep the kernel images for uBoot
+chroot $ROOT /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-$KERNEL_VERSION -d /boot/vmlinuz-$KERNEL_VERSION /boot/uImage
+chroot $ROOT /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
 
 #Remove the non-image kernel files
 rm $ROOT/boot/vmlinuz-$KERNEL_VERSION
@@ -358,7 +360,7 @@ ln -s /var/tmp/network $ROOT/etc/network/run
 
 # Fixes from http://wiki.debian.org/ReadonlyRoot
 
-rm $ROOT/etc/blkid.tab  > /dev/null 2>&1  
+rm $ROOT/etc/blkid.tab  > /dev/null 2>&1
 ln -s /dev/null $ROOT/etc/blkid.tab
 
 rm $ROOT/etc/mtab  > /dev/null 2>&1
@@ -367,9 +369,6 @@ ln -s /proc/mounts $ROOT/etc/mtab
 rm $ROOT/etc/rcS.d/S12udev-mtab
 
 rm -rf $ROOT/var/log/*
-
-##### Configure rc.local to turn off the orange LED and turn on the green LED
-sed -i 's|^exit 0|echo none > /sys/class/leds/dockstar\:orange\:health/trigger\necho default-on > /sys/class/leds/dockstar\:green\:health/trigger\nexit 0|' $ROOT/etc/rc.local
 
 ##### Configure boot environment
 
