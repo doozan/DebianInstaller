@@ -46,7 +46,7 @@ DEB_MIRROR="http://ftp.us.debian.org/debian"
 URL_MKE2FS="$MIRROR/mke2fs"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
 
-URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.26_all.deb"
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.28_all.deb"
 URL_MKIMAGE="$DEB_MIRROR/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
 URL_ENVTOOLS="$DEB_MIRROR/pool/main/u/uboot-envtools/uboot-envtools_20081215-2_armel.deb"
 
@@ -310,20 +310,6 @@ cat <<END > $ROOT/etc/fstab
 #/dev/sda3 /var/lib/apt            ext2  noatime      0 0
 
 END
-
-cat <<END > $ROOT/etc/kernel/postinst.d/zz-flash-kernel
-#!/bin/sh
-
-version="$1"
-bootopt=""
-
-# passing the kernel version is required
-[ -z "${version}" ] && exit 0
-
-echo "Running flash-kernel ${version}"
-flash-kernel ${version}
-END
-chmod +x $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 
 # Create /sbin/init-ro script mount serveral directories as tmfps
 
