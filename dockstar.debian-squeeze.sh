@@ -36,7 +36,8 @@ DEB_MIRROR="http://cdn.debian.net/debian"
 MKE2FS_URL="$MIRROR/mke2fs"
 PKGDETAILS_URL="$MIRROR/pkgdetails"
 URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
-URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.26+squeeze1_all.deb"
+DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
+URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
 URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"
 
 # Default binary locations
