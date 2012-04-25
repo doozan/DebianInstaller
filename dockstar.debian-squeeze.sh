@@ -2,7 +2,7 @@
 #
 # Install Debian Squeeze on DockStar
 
-# Copyright (c) 2010 Jeff Doozan
+# Copyright (c) 2010-2012 Jeff Doozan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,20 @@
 # THE SOFTWARE.
 
 
-# Version 1.0   [8/8/2010] Initial Release
+# Version 1.1    [4/25/2012] Download files from download.doozan.com
+# Version 1.0    [8/8/2010] Initial Release
 
 
 # Definitions
 
 # Download locations
-MIRROR="http://jeff.doozan.com/debian"
+MIRROR="http://download.doozan.com"
 
 DEB_MIRROR="http://cdn.debian.net/debian"
 
-MKE2FS_URL="$MIRROR/mke2fs"
-PKGDETAILS_URL="$MIRROR/pkgdetails"
-URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
+MKE2FS_URL="$MIRROR/debian/mke2fs"
+PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
+URL_UBOOT="http://projects.doozan.com/uboot/install_uboot_mtd0.sh"
 DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
 URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
 URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"

@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Install Debian Squeeze on DockStar
+# Install EmDebian Squeeze on DockStar
 
-# Copyright (c) 2010 Jeff Doozan
+# Copyright (c) 2010-2012 Jeff Doozan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,11 @@ KERNEL_VERSION=2.6.32-5-kirkwood
 
 
 # Download URLs
-MIRROR="http://jeff.doozan.com/debian"
+MIRROR="http://download.doozan.com"
 DEB_MIRROR="http://ftp.us.debian.org/debian"
 
-URL_MKE2FS="$MIRROR/mke2fs"
-URL_UBOOT="$MIRROR/uboot/install_uboot_mtd0.sh"
+URL_MKE2FS="$MIRROR/debian/mke2fs"
+URL_UBOOT="http://projects.doozan.com/uboot/install_uboot_mtd0.sh"
 
 URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/debootstrap_1.0.26+squeeze1_all.deb"
 URL_MKIMAGE="$DEB_MIRROR/pool/main/u/uboot-mkimage/uboot-mkimage_0.4_armel.deb"
