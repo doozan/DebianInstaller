@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+
+<head>
+<meta name="description" content="How to install Debian Lenny on the Dockstar">
+<meta name="keywords" content="Dockstar,Debian,Linux,Pogo,Pogoplug,Seagate">
+
+<title>Install Debian on your Dockstar or Pogoplug</title>
+
+<style type="text/css">
+.code
+{
+  -moz-border-radius:6px 6px 6px 6px;
+  background-color:#F2F2F2;
+  border:1px solid black;
+  margin:1em;
+  padding:14px 20px;
+  white-space:pre;
+}
+</style>
+
+</head>
+
+<body>
+<h3>Install Debian on your Dockstar or Pogoplug</h3>
+
+<p>This page uses an older installation method to install Debian Lenny.  If you would prefer to install a newer version of Debian, please use the <a href="/debian">new installer.</a></p>
+
+<p>Find your Pogoplug's IP address and connect via SSH:</p>
+<div class="code">username: root
+password: stxadmin
+</div>
+
+<p>Partition your flash drive.</p>
+
+<div class="code">fdisk /dev/sda
+# Configure partion 1 as Linux (I recommend at least 512MB)
+# Configure partion 2 as Linux Swap (256MB recommended)
+</div>
+
+
+<p>Download and run the debian install script:</p>
+<div class="code">cd /tmp
+wget http://projects.doozan.com/debian/dockstar.debian-lenny.sh
+chmod +x dockstar.debian-lenny.sh
+./dockstar.debian-lenny.sh
+</div>
+
+<p>The script will take some time to download the debian images and extract them to your flash drive.  Once it's finished, you have the option of rebooting into your new debian install.</p>
+
+<p>The default root password in Debian is 'root'.  After you've logged in, I'd recommend changing the root password and configuring /etc/apt/sources.list to point to something near you.</p>
+
+<div class="code">passwd
+vi /etc/apt/sources.list
+</div>
+
+<h3>Forum</h3>
+<p>For any questions and discussion of Debian on the Dockstar, please visit the <a href="http://forum.doozan.com/">forum.</a>
+
+<p>Enjoy,</p>
+
+<p>-- Jeff</p>
+
+
+</body>
+
+</html>

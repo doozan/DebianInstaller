@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+<meta name="description" content="How to install Debian Linux on your Dockstar, GoFlex or Pogoplug NAS">
+<meta name="keywords" content="GoFlex,NAS,Dockstar,Linux,Pogo,Pogoplug,Seagate">
+
+<title>Run Linux on your Dockstar, GoFlex, or Pogoplug NAS</title>
+
+<style type="text/css">
+.code
+{
+  -moz-border-radius:6px 6px 6px 6px;
+  background-color:#F2F2F2;
+  border:1px solid black;
+  margin:1em;
+  padding:14px 20px;
+  white-space:pre;
+}
+</style>
+
+</head>
+
+<body>
+<h2>Unlocking your Dockstar, GoFlex, or Pogoplug</h2>
+
+<p>This guide will replace the locked <a href="uboot/">bootloader</a> on your device with a new version that can boot from a variety of locations, including USB drives.  The installer will create a simple <a href="http://debian.org">Debian</a> Linux installation on your external USB drive.  From there, you can install any of the <a href="http://packages.debian.org/squeeze/">25,000+ packages</a> from the Debian repository.  If you decide that you don't like Debian and want to use the old Pogoplug software, simply unplug your USB drive and reboot.</p>
+
+<p>After you've installed Debian, please visit the <a href="http://forum.doozan.com">forums</a> for additional project ideas and support.</p>
+
+<p>If you'd prefer to run a distro other than Debian, and just want to unlock the bootloader, please see the <a href="uboot/">uBoot page.</a>
+
+<h3>Install Debian Linux</h3>
+
+<p>This will install Debian Squeeze on a USB drive connected to your Dockstar.  If you wish to install Debian Lenny, please see the <a href="install_lenny.htm">old installation</a> page.  If you would like to install Debian to the internal flash memory instead of a USB drive, please see <a href="http://forum.doozan.com/read.php?2,72">this discussion</a> on the forum.</p>
+
+<p>Find your devices's IP address and connect via SSH:</p>
+<div class="code">username: root
+password: (the password is 'stxadmin' on Seagate branded devices and 'ceadmin' on Pogoplug devices)
+</div>
+
+<p>Partition your flash drive with <a href="http://tldp.org/HOWTO/Partition/fdisk_partitioning.html">fdisk:</a></p>
+<div class="code">fdisk /dev/sda
+# Configure partion 1 as Linux (I'd recommend making this at least 512Mb. The default bare-bones installation uses 280Mb.)
+# Configure partion 2 as Linux Swap (I used 256MB.  Adjust according to your anticipated memory usage.)
+# Set partition 1 active
+</div>
+
+
+<p>Download and run the Debian installer:</p>
+<div class="code">cd /tmp
+wget http://projects.doozan.com/debian/dockstar.debian-squeeze.sh
+chmod +x dockstar.debian-squeeze.sh
+export PATH=$PATH:/usr/sbin:/sbin
+./dockstar.debian-squeeze.sh
+</div>
+
+<p>The script will take some time to download the debian images and extract them to your flash drive.  The total install time will vary with the speed of your flash drive and your Internet connection.  On my system, it takes about 20 minutes.  Once it's finished, you can rebooting into your new Debian install.</p>
+
+<p>After your device reboots, it may have a different IP address (it's identifying as 'Debian' to the DHCP server now instead of 'Pogoplug').</p>
+
+<p>The default root password in Debian is 'root'.  After you've logged in, you should change the root password and configure /etc/apt/sources.list to point to a <a href="http://www.debian.org/mirror/list">Debian mirror</a> near you.</p>
+
+<div class="code">passwd
+vi /etc/apt/sources.list
+</div>
+
+<a name="troubleshooting">
+<h3>Troubleshooting</h3>
+
+<p>Most boot problems are caused by bad USB drives.  In general, flash drives boot more reliably than hard drives.</p>
+<p>If you're having trouble, it's usually wise to try using a different flash drive.</p>
+<p>For more information on user-tested drives, see this <a href="http://forum.doozan.com/read.php?2,1915">discussion</a> in the forum.<p>
+<p>Many problems can be diagnosed by looking at the uBoot console.  If you don't have a serial connection to your device, you can still view the console by configuring <a href="http://forum.doozan.com/read.php?3,14,14">netconsole.</a></p>
+
+<h3>Forum</h3>
+<p>For any questions and discussion of Debian on the Dockstar, please visit the <a href="http://forum.doozan.com/">forum.</a>
+
+<p>Enjoy,</p>
+
+<p>-- Jeff</p>
+
+
+</body>
+
+</html>
