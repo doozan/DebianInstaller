@@ -32,7 +32,7 @@
 
 <h3>Install Debian Linux</h3>
 
-<p>This will install Debian Squeeze on a USB drive connected to your Dockstar.  If you wish to install Debian Lenny, please see the <a href="install_lenny.htm">old installation</a> page.  If you would like to install Debian to the internal flash memory instead of a USB drive, please see <a href="http://forum.doozan.com/read.php?2,72">this discussion</a> on the forum.</p>
+<p>This will install Debian on a USB drive connected to your Dockstar.  If you wish to install Debian Lenny, please see the <a href="install_lenny.htm">old installation</a> page.  If you would like to install Debian to the internal flash memory instead of a USB drive, please see <a href="http://forum.doozan.com/read.php?2,72">this discussion</a> on the forum.</p>
 
 <p>Find your devices's IP address and connect via SSH:</p>
 <div class="code">username: root
@@ -47,7 +47,15 @@ password: (the password is 'stxadmin' on Seagate branded devices and 'ceadmin' o
 </div>
 
 
-<p>Download and run the Debian installer:</p>
+<p>Download and run the Debian Wheezy installer:</p>
+<div class="code">cd /tmp
+wget http://projects.doozan.com/debian/kirkwood.debian-wheezy.sh
+chmod +x kirkwood.debian-wheezy.sh
+export PATH=$PATH:/usr/sbin:/sbin
+./kirkwood.debian-wheezy.sh
+</div>
+
+<p>Alternatively, you can choose to install Debian Squeeze with the following commands:</p>
 <div class="code">cd /tmp
 wget http://projects.doozan.com/debian/dockstar.debian-squeeze.sh
 chmod +x dockstar.debian-squeeze.sh

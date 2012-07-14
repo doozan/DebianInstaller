@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Install Debian Squeeze on Kirkwood devices
+# Install Debian Wheezy on Kirkwood devices
 
-# Copyright (c) 2010-2012 Jeff Doozan
+# Copyright (c) 2012 Jeff Doozan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -236,7 +236,7 @@ echo "If you lose power while the bootloader is being flashed,"
 echo "your device could be left in an unusable state."
 echo ""
 echo ""
-echo "This script will configure your Dockstar to boot Debian Squeeze"
+echo "This script will configure your Dockstar to boot Debian"
 echo "from a USB device.  Before running this script, you should have"
 echo "used fdisk to create the following partitions:"
 echo ""
@@ -366,7 +366,6 @@ echo ""
 echo ""
 echo "# Starting debootstrap installation"
 
-# Squeeze
 /usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
 
 if [ "$?" -ne "0" ]; then
