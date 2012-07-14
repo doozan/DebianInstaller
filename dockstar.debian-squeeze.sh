@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 
 
+# Version 1.2    [7/14/2012] Fixed to work with latest debootstrap 
 # Version 1.1    [4/25/2012] Download files from download.doozan.com
 # Version 1.0    [8/8/2010] Initial Release
 
@@ -51,6 +52,7 @@ ROOT=/tmp/debian
 # debootstrap configuration
 RELEASE=squeeze
 VARIANT=minbase
+ARCH=armel
 
 # if you want to install additional packages, add them to the end of this list
 EXTRA_PACKAGES=linux-image-2.6-kirkwood,flash-kernel,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
@@ -207,6 +209,25 @@ if ! which chroot >/dev/null; then
   exit 1
 fi
 
+if [ -x /usr/bin/perl ]; then
+  if [ "`/usr/bin/perl -le 'print $ENV{PATH}`" == "" ]; then
+    echo ""
+    echo "Your perl subsystem does not have support for $ENV{}"
+    echo "and must be disabled for debootstrap to work"
+    echo "Please disable perl by running the following command"
+    echo ""
+    echo "chmod -x /usr/bin/perl"
+    echo ""
+    echo "After perl is disabled, you can re-run this script."
+    echo "To re-enable perl after installation, run:"
+    echo ""
+    echo "chmod +x /usr/bin/perl"
+    echo ""
+    echo "Installation aborted."
+    exit
+  fi
+fi
+
 echo ""
 echo ""
 echo "!!!!!!  DANGER DANGER DANGER DANGER DANGER DANGER  !!!!!!"
@@ -348,7 +369,7 @@ echo ""
 echo "# Starting debootstrap installation"
 
 # Squeeze
-/usr/sbin/debootstrap --verbose --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
+/usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
 
 if [ "$?" -ne "0" ]; then
   echo "debootstrap failed."
