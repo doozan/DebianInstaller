@@ -210,7 +210,7 @@ fi
 if [ -x /usr/bin/perl ]; then
   if [ "`/usr/bin/perl -le 'print $ENV{PATH}`" == "" ]; then
     echo ""
-    echo "Your perl subsystem does not have support for $ENV{}"
+    echo "Your perl subsystem does not have support for \$ENV{}"
     echo "and must be disabled for debootstrap to work"
     echo "Please disable perl by running the following command"
     echo ""
