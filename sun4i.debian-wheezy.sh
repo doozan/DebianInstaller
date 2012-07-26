@@ -398,14 +398,12 @@ chroot $ROOT /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -
 
 
 # If script.bin has emac enabled, load the wemac module
-# If not, assume wireless and load the 8192 module
 WIRED=`fexc -I bin -O fex /mnt/sysconfig/system.bin | grep emac_used | cut -d " " -f 3`
 
 if [ $WIRED = 1 ]; then
   echo sun4i_wemac >> $ROOT/etc/modules
-else
-  echo 8192cu >> $ROOT/etc/modules
 fi
+echo 8192cu >> $ROOT/etc/modules
 
 
 # Copy network configuration from sysconfig partition
