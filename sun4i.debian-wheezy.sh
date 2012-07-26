@@ -23,7 +23,10 @@
 # THE SOFTWARE.
 
 
-# Version 1.0    [7/14/2012] Initial Release
+# Version 1.1    [7/26/2012] Remove dockstar specific cruft
+#                            Use system.bin to populate /etc/modules
+#                            Add --noprompt and --extra-packages options
+# Version 1.0    [7/24/2012] Initial Release
 
 
 # Definitions
@@ -33,14 +36,11 @@ MIRROR="http://download.doozan.com"
 
 DEB_MIRROR="http://cdn.debian.net/debian"
 
-MKE2FS_URL="$MIRROR/debian/mke2fs"
+PKGDETAILS=/usr/share/debootstrap/pkgdetails
 PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
+
 DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
 DEBOOTSTRAP_URL="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
-
-# Default binary locations
-MKE2FS=/sbin/mke2fs
-PKGDETAILS=/usr/share/debootstrap/pkgdetails
 
 # Where should the temporary 'debian root' be mounted
 ROOT=/tmp/debian
@@ -49,9 +49,10 @@ ROOT=/tmp/debian
 RELEASE=wheezy
 VARIANT=minbase
 ARCH=armhf
+COMPONENTS=main,non-free
 
 # if you want to install additional packages, add them to the end of this list
-EXTRA_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant
+EXTRA_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant,firmware-realtek,wireless-tools
 
 KERNEL_URL="$MIRROR/debian/linux-image-wheezy-sun4i.deb"
 
@@ -65,7 +66,7 @@ SWAP_DEV=/dev/mmcblk0p3
 #  There are no user-serviceable parts below this line
 #########################################################
 
-RO_ROOT_=0
+RO_ROOT=0
 
 TIMESTAMP=$(date +"%d%m%Y%H%M%S")
 touch /sbin/$TIMESTAMP
@@ -223,43 +224,49 @@ if [ -x /usr/bin/perl ]; then
   fi
 fi
 
-echo ""
-echo ""
-echo "!!!!!!  DANGER DANGER DANGER DANGER DANGER DANGER  !!!!!!"
-echo ""
-echo "This script will replace the bootloader on /dev/mtd0."
-echo ""
-echo "If you lose power while the bootloader is being flashed,"
-echo "your device could be left in an unusable state."
-echo ""
-echo ""
-echo "This script will configure your Dockstar to boot Debian"
-echo "from a USB device.  Before running this script, you should have"
-echo "used fdisk to create the following partitions:"
-echo ""
-echo "$ROOT_DEV (Linux ext2, at least 400MB)"
-echo "$SWAP_DEV (Linux swap, recommended 256MB)"
-echo ""
-echo ""
-echo "This script will DESTROY ALL EXISTING DATA on $ROOT_DEV and $SWAP_DEV"
-echo "Please double check that the device on $ROOT_DEV is the correct device."
-echo ""
-echo "By typing ok, you agree to assume all liabilities and risks"
-echo "associated with running this installer."
-echo ""
-echo -n "If everything looks good, type 'ok' to continue: "
+# Parse command line
+for i in $*
+do
+case $i in
+    --extra-packages=*)
+      CLI_EXTRA_PACKAGES=,`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+      ;;
+    --noprompt)
+      NOPROMPT=1
+      ;;
+    *)
+      ;;
+  esac
+done
 
 
-read IS_OK
-if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ];
-then
-  echo "Exiting..."
-  exit
+if [ "$NOPROMPT" != "1" ]; then
+  echo ""
+  echo ""
+  echo "This script will configure your A10 Device to boot Debian"
+  echo "from $ROOT_DEV.  Before running this script, you should have"
+  echo "used fdisk to create the following partitions:"
+  echo ""
+  echo "$ROOT_DEV (Linux ext, at least 400MB)"
+  echo "$SWAP_DEV (Linux swap, recommended 256MB)"
+  echo ""
+  echo ""
+  echo "This script will DESTROY ALL EXISTING DATA on $ROOT_DEV and $SWAP_DEV"
+  echo "Please double check that the device on $ROOT_DEV is the correct device."
+  echo ""
+  echo "By typing ok, you agree to assume all liabilities and risks"
+  echo "associated with running this installer."
+  echo ""
+  echo -n "If everything looks good, type 'ok' to continue: "
+
+  read IS_OK
+  if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ];
+  then
+    echo "Exiting..."
+    exit
+  fi
 fi
 
-
-# Stop the pogoplug engine
-killall -q hbwd
 
 # Create the mount point if it doesn't already exist
 if [ ! -f $ROOT ];
@@ -267,9 +274,6 @@ then
   mkdir -p $ROOT
 fi
 
-
-# Get the source directory
-SRC=$ROOT
 
 
 ##########
@@ -282,14 +286,8 @@ SRC=$ROOT
 
 umount $ROOT > /dev/null 2>&1
 
-if ! which mke2fs >/dev/null; then
-  install "$MKE2FS"         "$MKE2FS_URL"          755
-else
-  MKE2FS=$(which mke2fs)
-fi
-
-$MKE2FS $ROOT_DEV
-/sbin/mkswap $SWAP_DEV
+mke2fs $ROOT_DEV
+mkswap $SWAP_DEV
 
 mount $ROOT_DEV $ROOT
 
@@ -340,7 +338,7 @@ echo ""
 echo ""
 echo "# Starting debootstrap installation"
 
-/usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
+/usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --components=$COMPONENTS --include=$EXTRA_PACKAGES$CLI_EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
 
 if [ "$?" -ne "0" ]; then
   echo "debootstrap failed."
@@ -349,25 +347,14 @@ if [ "$?" -ne "0" ]; then
 fi
 
 
-cat <<END > $ROOT/etc/apt/apt.conf
-APT::Install-Recommends "0";
-APT::Install-Suggests "0";
-END
-
 echo debian > $ROOT/etc/hostname
 echo LANG=C > $ROOT/etc/default/locale
-
-cat <<END > $ROOT/etc/network/interfaces
-auto lo eth0
-iface lo inet loopback
-iface eth0 inet dhcp
-END
 
 cat <<END > $ROOT/etc/fstab
 # /etc/fstab: static file system information.
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
-$ROOT_DEV      /               ext2    noatime,errors=remount-ro 0 1
+$ROOT_DEV      /               ext3    noatime,errors=remount-ro 0 1
 $SWAP_DEV      none            swap    sw                0       0
 tmpfs          /tmp            tmpfs   defaults          0       0
 END
@@ -410,18 +397,25 @@ chroot $ROOT /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x40008000 -
 chroot $ROOT /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
 
 
-# Enable ethernet module
-echo sun4i_wemac >> $ROOT/etc/modules
+# If script.bin has emac enabled, load the wemac module
+# If not, assume wireless and load the 8192 module
+WIRED=`fexc -I bin -O fex /mnt/sysconfig/system.bin | grep emac_used | cut -d " " -f 3`
+
+if [ $WIRED = 1 ]; then
+  echo sun4i_wemac >> $ROOT/etc/modules
+else
+  echo 8192cu >> $ROOT/etc/modules
+fi
 
 
 # Copy network configuration from sysconfig partition
 if [ -f /mnt/sysconfig/rescue/interfaces ]; then
-  cp /mnt/sysconfig/rescue/interfaces /etc/network/
-  chmod 644 /etc/network/interfaces
+  cp /mnt/sysconfig/rescue/interfaces $ROOT/etc/network/
+  chmod 644 $ROOT/etc/network/interfaces
 fi
 if [ -f /mnt/sysconfig/rescue/wpa_supplicant.conf ]; then
-  cp /mnt/sysconfig/rescue/wpa_supplicant.conf /etc/
-  chmod 600 /etc/wpa_supplicant.conf
+  cp /mnt/sysconfig/rescue/wpa_supplicant.conf $ROOT/etc/
+  chmod 600 $ROOT/etc/wpa_supplicant.conf
 fi
 
 ##### All Done
@@ -442,11 +436,14 @@ echo ""
 echo "The new root password is 'root'  Please change it immediately after"
 echo "logging in."
 echo ""
-echo -n "Reboot now? [Y/n] "
 
-read IN
-if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ];
-then
-  /sbin/reboot
+if [ "$NOPROMPT" != "1" ]; then
+  echo -n "Reboot now? [Y/n] "
+
+  read IN
+  if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ];
+  then
+    /sbin/reboot
+  fi
 fi
 
