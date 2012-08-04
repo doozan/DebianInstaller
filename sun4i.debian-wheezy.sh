@@ -23,6 +23,8 @@
 # THE SOFTWARE.
 
 
+# Version 1.2    [7/27/2012] Support for custom installs via debian-installer.config
+#                            Install a simple GUI
 # Version 1.1    [7/26/2012] Remove dockstar specific cruft
 #                            Use system.bin to populate /etc/modules
 #                            Add --noprompt and --extra-packages options
@@ -31,6 +33,9 @@
 
 # Definitions
 
+
+DEBIAN_INSTALLER=1.2
+
 # Download locations
 MIRROR="http://download.doozan.com"
 
@@ -38,6 +43,9 @@ DEB_MIRROR="http://cdn.debian.net/debian"
 
 PKGDETAILS=/usr/share/debootstrap/pkgdetails
 PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
+
+A10_DISPLAY=/sbin/a10_display
+A10_DISPLAY_URL=$MIRROR/a10/a10_display
 
 DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
 DEBOOTSTRAP_URL="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
@@ -52,7 +60,12 @@ ARCH=armhf
 COMPONENTS=main,non-free
 
 # if you want to install additional packages, add them to the end of this list
-EXTRA_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant,firmware-realtek,wireless-tools
+BASE_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant,firmware-realtek,wireless-tools
+
+# Install mini GUI by default
+INSTALL_MINI_GUI=1
+MINI_GUI_PACKAGES=xserver-xorg,xserver-xorg-input-all,xserver-xorg-video-fbdev,xserver-xorg-core,xinit,fluxbox,xterm
+
 
 KERNEL_URL="$MIRROR/debian/linux-image-wheezy-sun4i.deb"
 
@@ -229,7 +242,7 @@ for i in $*
 do
 case $i in
     --extra-packages=*)
-      CLI_EXTRA_PACKAGES=,`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+      CLI_PACKAGES=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
       ;;
     --noprompt)
       NOPROMPT=1
@@ -239,6 +252,46 @@ case $i in
   esac
 done
 
+
+# Source config file
+# Config file must be in the same directory as this installer
+# and must match the naming pattern debian-installer*.config
+
+config_postinstall()
+{
+  true
+  # This is a placeholder routine
+}
+
+shopt -s nullglob
+
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+CONFIG=
+
+for file in $DIR/debian-installer*.config ; do
+  if [ $CONFIG ]; then
+    echo "Config file $file conflicts with $CONFIG.  Only one config file can be used."
+    exit 1
+  fi
+  CONFIG=$file
+done
+
+if [ -f "$CONFIG" ]; then
+  echo "Reading $CONFIG"
+  . $CONFIG
+fi
+shopt -u nullglob
+
+PACKAGES=$BASE_PACKAGES
+if [ $INSTALL_MINI_GUI ]; then
+  PACKAGES=$PACKAGES,$MINI_GUI_PACKAGES
+fi
+if [ "$CLI_PACKAGES" != "" ]; then
+  PACKAGES=$PACKAGES,$CLI_PACKAGES
+fi
+if [ "$CONFIG_PACKAGES" != "" ]; then
+  PACKAGES=$PACKAGES,$CONFIG_PACKAGES
+fi
 
 if [ "$NOPROMPT" != "1" ]; then
   echo ""
@@ -273,7 +326,6 @@ if [ ! -f $ROOT ];
 then
   mkdir -p $ROOT
 fi
-
 
 
 ##########
@@ -338,7 +390,7 @@ echo ""
 echo ""
 echo "# Starting debootstrap installation"
 
-/usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --components=$COMPONENTS --include=$EXTRA_PACKAGES$CLI_EXTRA_PACKAGES $RELEASE $ROOT $DEB_MIRROR
+/usr/sbin/debootstrap --verbose --no-check-gpg --arch=$ARCH --variant=$VARIANT --components=$COMPONENTS --include=$PACKAGES $RELEASE $ROOT $DEB_MIRROR
 
 if [ "$?" -ne "0" ]; then
   echo "debootstrap failed."
@@ -359,8 +411,25 @@ $SWAP_DEV      none            swap    sw                0       0
 tmpfs          /tmp            tmpfs   defaults          0       0
 END
 
-echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
+
+# Disable tty until fbconsole works
 sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
+echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
+
+if [ $INSTALL_MINI_GUI ]; then
+  # Run x as root on tty6 
+  echo "6:23:respawn:/bin/login -f root tty6 </dev/tty6 >/dev/tty6 2>&1" >>  $ROOT/etc/inittab
+
+  # Configure .profile to run startx
+  cat<<EOF | cat - $ROOT/root/.profile > $ROOT/root/.profile.tmp
+if [ -z "\$DISPLAY" ] && [ \$(tty) == /dev/tty6 ]; then
+    startx
+fi
+EOF
+  cat $ROOT/root/.profile.tmp > $ROOT/root/.profile
+  rm $ROOT/root/.profile.tmp
+
+fi
 
 echo HWCLOCKACCESS=yes >> $ROOT/etc/default/rcS
 echo CONCURRENCY=shell >> $ROOT/etc/default/rcS
@@ -397,14 +466,17 @@ chroot $ROOT /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x40008000 -
 chroot $ROOT /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
 
 
-# If script.bin has emac enabled, load the wemac module
-WIRED=`fexc -I bin -O fex /mnt/sysconfig/system.bin | grep emac_used | cut -d " " -f 3`
+# Install the display control utility
+install "$ROOT/$A10_DISPLAY" "$A10_DISPLAY_URL" 755
 
-if [ $WIRED = 1 ]; then
-  echo sun4i_wemac >> $ROOT/etc/modules
-fi
+# Enable wifi module
 echo 8192cu >> $ROOT/etc/modules
 
+# If script.bin has emac enabled, load the wemac module
+WIRED=`fexc -I bin -O fex /mnt/sysconfig/system.bin | grep emac_used | cut -d " " -f 3`
+if [ $WIRED ]; then
+  echo sun4i_wemac >> $ROOT/etc/modules
+fi
 
 # Copy network configuration from sysconfig partition
 if [ -f /mnt/sysconfig/rescue/interfaces ]; then
@@ -415,6 +487,10 @@ if [ -f /mnt/sysconfig/rescue/wpa_supplicant.conf ]; then
   cp /mnt/sysconfig/rescue/wpa_supplicant.conf $ROOT/etc/
   chmod 600 $ROOT/etc/wpa_supplicant.conf
 fi
+
+# Call config_postinstall to do any custom configuration
+config_postinstall
+
 
 ##### All Done
 
