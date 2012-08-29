@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 
 
+# Version 1.3    [8/29/2012] Add mali x11 support
 # Version 1.2    [7/27/2012] Support for custom installs via debian-installer.config
 #                            Install a simple GUI
 # Version 1.1    [7/26/2012] Remove dockstar specific cruft
@@ -34,7 +35,7 @@
 # Definitions
 
 
-DEBIAN_INSTALLER=1.2
+DEBIAN_INSTALLER=1.3
 
 # Download locations
 MIRROR="http://download.doozan.com"
@@ -65,6 +66,8 @@ BASE_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhc
 # Install mini GUI by default
 INSTALL_MINI_GUI=1
 MINI_GUI_PACKAGES=xserver-xorg,xserver-xorg-input-all,xserver-xorg-video-fbdev,xserver-xorg-core,xinit,fluxbox,xterm
+MALI_GL_URL="http://dl.dropbox.com/u/65312725/mali_opengl_hf_lib.tgz"
+MALI_URL="$MIRROR/a10/xfree86-video-mali-r2p4-02rel1.tgz"
 
 
 KERNEL_URL="$MIRROR/debian/linux-image-wheezy-sun4i.deb"
@@ -132,7 +135,7 @@ download_and_verify ()
     else
       rm -f "$file_dest"
     fi
- fi
+  fi
 
   # Download the file
   wget -O "$file_dest" "$file_url"
@@ -158,7 +161,7 @@ install ()
   local file_dest=$1
   local file_url=$2   
   local file_pmask=$3  # Permissions mask
-  
+
   echo "# checking for $file_dest..."
 
   # Install target file if it doesn't already exist
@@ -180,7 +183,7 @@ install ()
       mount -o remount,rw /
     fi
     rm -f "$file_dest" 2> /dev/null
-        
+
     download_and_verify "$file_dest" "$file_url"
     if [ "$?" -ne "0" ]; then
       echo "## Could not install $file_dest from $file_url, exiting."
@@ -240,7 +243,7 @@ fi
 # Parse command line
 for i in $*
 do
-case $i in
+  case $i in
     --extra-packages=*)
       CLI_PACKAGES=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
       ;;
@@ -417,6 +420,18 @@ sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
 echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
 
 if [ $INSTALL_MINI_GUI ]; then
+
+  # Install mali drivers
+  wget -O $ROOT/tmp/mali.tgz $MALI_URL
+  tar -xzvf $ROOT/tmp/mali.tgz -directory $ROOT/usr/lib/xorg/modules/drivers
+  rm $ROOT/tmp/mali.tgz
+
+  wget -O $ROOT/tmp/mali_gl.tgz $MALI_GL_URL
+  tar -xzvf $ROOT/tmp/mali_gl.tgz --directory $ROOT/tmp
+  mv $ROOT/tmp/mali_opengl_hf_lib/* $ROOT/usr/lib
+  rmdir $ROOT/tmp/mali_opengl_hf_lib
+  rm $ROOT/tmp/mali_gl.tgz
+
   # Run x as root on tty6 
   echo "6:23:respawn:/bin/login -f root tty6 </dev/tty6 >/dev/tty6 2>&1" >>  $ROOT/etc/inittab
 
@@ -424,10 +439,34 @@ if [ $INSTALL_MINI_GUI ]; then
   cat<<EOF | cat - $ROOT/root/.profile > $ROOT/root/.profile.tmp
 if [ -z "\$DISPLAY" ] && [ \$(tty) == /dev/tty6 ]; then
     startx
+    exit 0
 fi
 EOF
   cat $ROOT/root/.profile.tmp > $ROOT/root/.profile
   rm $ROOT/root/.profile.tmp
+
+  cat<<EOF>/$ROOT/etc/X11/xorg.conf
+# X.Org X server configuration file for xfree86-video-mali
+
+Section "Device"
+        Identifier "Mali FBDEV"
+        Driver  "mali"
+        Option  "fbdev"            "/dev/fb0"
+        Option  "DRI2"             "false"
+        Option  "DRI2_PAGE_FLIP"   "false"
+        Option  "DRI2_WAIT_VSYNC"  "false"
+EndSection
+
+Section "Screen"
+        Identifier      "Mali Screen"
+        Device          "Mali FBDEV"
+        DefaultDepth    24
+EndSection
+
+Section "DRI"
+        Mode 0666
+EndSection
+EOF
 
 fi
 
