@@ -435,6 +435,10 @@ if [ $INSTALL_MINI_GUI ]; then
   # Run x as root on tty6 
   echo "6:23:respawn:/bin/login -f root tty6 </dev/tty6 >/dev/tty6 2>&1" >>  $ROOT/etc/inittab
 
+  # Add module loading fix to rc.local
+  # ump does not load well unless hdmi has been loaded first (even though hdmi is compiled into the kernel)
+  sed -i 's/^exit 0/modprobe hdmi ump\nexit 0/' $ROOT/etc/rc.local
+
   # Configure .profile to run startx
   cat<<EOF | cat - $ROOT/root/.profile > $ROOT/root/.profile.tmp
 if [ -z "\$DISPLAY" ] && [ \$(tty) == /dev/tty6 ]; then
