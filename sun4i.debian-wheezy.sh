@@ -423,7 +423,7 @@ if [ $INSTALL_MINI_GUI ]; then
 
   # Install mali drivers
   wget -O $ROOT/tmp/mali.tgz $MALI_URL
-  tar -xzvf $ROOT/tmp/mali.tgz -directory $ROOT/usr/lib/xorg/modules/drivers
+  tar -xzvf $ROOT/tmp/mali.tgz --directory $ROOT/usr/lib/xorg/modules/drivers
   rm $ROOT/tmp/mali.tgz
 
   wget -O $ROOT/tmp/mali_gl.tgz $MALI_GL_URL
