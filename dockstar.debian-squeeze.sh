@@ -413,14 +413,14 @@ END
 cat <<END > $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 #!/bin/sh
 
-version="$1"
+version="\$1"
 bootopt=""
 
 # passing the kernel version is required
-[ -z "${version}" ] && exit 0
+[ -z "\${version}" ] && exit 0
 
-echo "Running flash-kernel ${version}"
-flash-kernel ${version}
+echo "Running flash-kernel \${version}"
+flash-kernel \${version}
 END
 chmod +x $ROOT/etc/kernel/postinst.d/zz-flash-kernel
 
