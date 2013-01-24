@@ -35,7 +35,7 @@ EMB_MIRROR=http://www.emdebian.org/grip/
 
 # if you want to install additional packages, add them to the end of this list
 # Note: Not all packages are available in the embdebian repository
-EXTRA_PACKAGES=linux-image-2.6-kirkwood,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp3-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring
+EXTRA_PACKAGES=linux-image-kirkwood,linux-base,initramfs-tools,module-init-tools,udev,mtd-utils,netbase,ifupdown,iproute,dhcp3-client,openssh-server,iputils-ping,wget,net-tools,ntpdate,vim-tiny,emdebian-archive-keyring,debian-archive-keyring,dialog
 KERNEL_VERSION=2.6.32-5-kirkwood
 
 
@@ -64,9 +64,6 @@ ROOT=/tmp/debian
 #########################################################
 
 ROOT_DEV=/dev/sda1 # Don't change this, uboot expects to boot from here
-
-# Stop the pogoplug engine
-killall -q hbwd
 
 echo ""
 echo ""
@@ -108,12 +105,15 @@ echo -n "If everything looks good, type 'ok' to continue: "
 
 
 read IS_OK
-if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ];
+if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ]
 then
   echo "You did not type 'ok', exiting installer."
   echo "Your system has not been modified."
   exit
 fi
+
+# Stop the pogoplug engine
+killall -q hbwd
 
 
 
@@ -128,7 +128,7 @@ fi
 
 
 # Get the uBoot install script
-if [ ! -f /tmp/install_uboot_mtd0.sh ];
+if [ ! -f /tmp/install_uboot_mtd0.sh ]
 then
   wget -P /tmp $URL_UBOOT
   chmod +x /tmp/install_uboot_mtd0.sh
@@ -147,18 +147,15 @@ echo "Installing Bootloader"
 ##########
 ##########
 
-# Get the source directory
-SRC=$ROOT
-
 # Create the mount point if it doesn't already exist
-if [ ! -f $ROOT ];
+if [ ! -d $ROOT ]
 then
   mkdir -p $ROOT
 else
   umount $ROOT > /dev/null 2>&1
 fi
 
-if [ ! -f /sbin/mke2fs ];
+if [ ! -f /sbin/mke2fs ]
 then
   mount -o rw,remount /
   wget -P /sbin $URL_MKE2FS
@@ -189,7 +186,7 @@ if [ ! -e /usr/sbin/debootstrap ]; then
   cd /tmp/debootstrap
   wget -O debootstrap.deb $URL_DEBOOTSTRAP
   ar xv debootstrap.deb
-  tar -xzvf data.tar.gz
+  tar xzvf data.tar.gz
 
   mount -o rw,remount /
   mv ./usr/sbin/debootstrap /usr/sbin
@@ -216,7 +213,7 @@ echo "# Starting debootstrap installation"
 
 mkdir -p $ROOT/usr/share/info
 mkdir -p $ROOT/usr/share/man/man1
-/usr/sbin/debootstrap --verbose --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $EMB_MIRROR
+/usr/sbin/debootstrap --verbose --no-check-gpg --arch=armel --variant=$VARIANT --include=$EXTRA_PACKAGES $RELEASE $ROOT $EMB_MIRROR
 
 if [ "$?" -ne "0" ]; then
   echo "debootstrap failed."
@@ -224,7 +221,8 @@ if [ "$?" -ne "0" ]; then
   exit 1
 fi
 
-cat <<END > $ROOT/etc/apt/apt.conf
+cat <<END > $ROOT/etc/apt/apt.conf.d/50doozan
+// Conserve disk/flash space by not installing extra packages.
 APT::Install-Recommends "0";
 APT::Install-Suggests "0";
 END
@@ -251,10 +249,6 @@ rm $ROOT/tmp/envtools.deb
 chroot $ROOT /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-$KERNEL_VERSION -d /boot/vmlinuz-$KERNEL_VERSION /boot/uImage
 chroot $ROOT /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
 
-#Remove the non-image kernel files
-rm $ROOT/boot/vmlinuz-$KERNEL_VERSION
-rm $ROOT/boot/initrd.img-$KERNEL_VERSION
-
 
 ##########
 ##########
@@ -266,26 +260,34 @@ rm $ROOT/boot/initrd.img-$KERNEL_VERSION
 
 #configure hostname and add it to /etc/hosts
 echo $HOSTNAME > $ROOT/etc/hostname
-sed -i "s/^\(127.0.0.1.*\)/\1 $HOSTNAME/" $ROOT/etc/hosts
+sed -i "s/^\\(127\\.0\\.0\\.1.*\\)/\\1 $HOSTNAME/" $ROOT/etc/hosts
 
 echo LANG=C > $ROOT/etc/default/locale
 
 cat <<END > $ROOT/etc/fw_env.config
+# Configuration file for fw_(printenv/saveenv) utility.
+# Up to two entries are valid; in this case the redundant
+# environment sector is assumed present.
+# Note that "Number of sectors" is ignored on NOR.
+
 # MTD device name	Device offset	Env. size	Flash sector size	Number of sectors
-/dev/mtd0         0xc0000       0x20000   0x20000
+/dev/mtd0		0xc0000		0x20000		0x20000
 END
 
-cat <<END > $ROOT/etc/network/interfaces
+cat <<END >> $ROOT/etc/network/interfaces
 auto lo eth0
 iface lo inet loopback
 iface eth0 inet dhcp
 END
 
+# allow login on the serial port, and disable standard console terminals
 echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
 sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
 
 # root password is 'root'
-echo "root:\$1\$XPo5vyFS\$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::" > $ROOT/etc/shadow
+sed -i 's,^root:.*$,root:$1$XPo5vyFS$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::,' $ROOT/etc/shadow
+
+chroot $ROOT /usr/bin/apt-get clean
 
 
 ##########
@@ -298,16 +300,19 @@ echo "root:\$1\$XPo5vyFS\$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::" > $ROOT/etc
 
 
 cat <<END > $ROOT/etc/fstab
-/dev/root  /                 ext2  noatime,ro   0 1
+# /etc/fstab: static file system information.
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/dev/root       /               ext2    noatime,ro      0       1
 
 # /tmp (and others) are mounted from /sbin/init-ro
 
 # un-comment the next line to store /etc on external drive
-#/dev/sda1 /etc              ext2  noatime      0 0
+#/dev/sda1       /etc            ext2    noatime         0       0
 
-# uncommend the next two lines to store apt files on external drive
-#/dev/sda2 /var/cache/apt/lists    ext2  noatime      0 0
-#/dev/sda3 /var/lib/apt            ext2  noatime      0 0
+# un-comment the next two lines to store apt files on external drive
+#/dev/sda2       /var/cache/apt/lists ext2 noatime       0       0
+#/dev/sda3       /var/lib/apt    ext2    noatime         0       0
 
 END
 
@@ -333,8 +338,8 @@ END
 chmod +x $ROOT/sbin/init-ro
 
 
-# Configure dhcp-client to write resolv.conf to /tmp instead of /etc
-sed -i 's/\/etc\/resolv.conf/\/var\/tmp\/resolv.conf/' $ROOT/sbin/dhclient-script > /dev/null 2>&1
+# Configure dhcp-client to write resolv.conf to /var/tmp instead of /etc
+sed -i 's,/etc/resolv\.conf,/var/tmp/resolv.conf,' $ROOT/sbin/dhclient-script > /dev/null 2>&1
 rm $ROOT/etc/resolv.conf
 ln -s /var/tmp/resolv.conf $ROOT/etc/resolv.conf
 
@@ -346,10 +351,10 @@ ln -s /var/tmp/network $ROOT/etc/network/run
 
 # Fixes from http://wiki.debian.org/ReadonlyRoot
 
-rm $ROOT/etc/blkid.tab  > /dev/null 2>&1
+rm -f $ROOT/etc/blkid.tab
 ln -s /dev/null $ROOT/etc/blkid.tab
 
-rm $ROOT/etc/mtab  > /dev/null 2>&1
+rm -f $ROOT/etc/mtab
 ln -s /proc/mounts $ROOT/etc/mtab
 
 rm $ROOT/etc/rcS.d/S12udev-mtab
@@ -379,7 +384,7 @@ echo ""
 echo -n "Reboot now? [Y/n] "
 
 read IN
-if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ];
+if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ]
 then
   /sbin/reboot
 fi
