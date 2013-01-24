@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 
 
+# Version 1.1    [1/24/2013] Revised by Daniel Richard G.
 # Version 1.0    [7/14/2012] Initial Release
 
 
@@ -38,7 +39,6 @@ PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
 URL_UBOOT="http://projects.doozan.com/uboot/install_uboot_mtd0.sh"
 DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
 URL_DEBOOTSTRAP="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
-URL_FW_CONFIG="$MIRROR/uboot/fw_env.config"
 
 # Default binary locations
 MKE2FS=/sbin/mke2fs
@@ -53,8 +53,7 @@ VARIANT=minbase
 ARCH=armel
 
 # if you want to install additional packages, add them to the end of this list
-EXTRA_PACKAGES=linux-image-kirkwood,flash-kernel,module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,uboot-envtools,vim-tiny
-KERNEL_VERSION=3.2.0-3-kirkwood
+EXTRA_PACKAGES=linux-image-kirkwood,flash-kernel,kmod,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,u-boot-tools,vim-tiny,dialog
 
 
 
@@ -68,10 +67,10 @@ KERNEL_VERSION=3.2.0-3-kirkwood
 #  There are no user-serviceable parts below this line
 #########################################################
 
-RO_ROOT_=0
+RO_ROOT=0
 
 TIMESTAMP=$(date +"%d%m%Y%H%M%S")
-touch /sbin/$TIMESTAMP
+touch /sbin/$TIMESTAMP 2>/dev/null
 if [ ! -f /sbin/$TIMESTAMP ]; then
   RO_ROOT=1
 else
@@ -165,7 +164,7 @@ install ()
       touch "$file_dest" 2> /dev/null
     fi
     if [ "$?" -ne "0" ]; then
-      local is_readonly=0
+      local is_readonly=1
       mount -o remount,rw /
     fi
     rm -f "$file_dest" 2> /dev/null
@@ -208,7 +207,7 @@ if ! which chroot >/dev/null; then
 fi
 
 if [ -x /usr/bin/perl ]; then
-  if [ "`/usr/bin/perl -le 'print $ENV{PATH}`" == "" ]; then
+  if [ "`/usr/bin/perl -le 'print $ENV{PATH}'`" = "" ]; then
     echo ""
     echo "Your perl subsystem does not have support for \$ENV{}"
     echo "and must be disabled for debootstrap to work"
@@ -254,7 +253,7 @@ echo -n "If everything looks good, type 'ok' to continue: "
 
 
 read IS_OK
-if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ];
+if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ]
 then
   echo "Exiting..."
   exit
@@ -268,14 +267,10 @@ ROOT_DEV=/dev/sda1 # Don't change this, uboot expects to boot from here
 SWAP_DEV=/dev/sda2
 
 # Create the mount point if it doesn't already exist
-if [ ! -f $ROOT ];
+if [ ! -d $ROOT ]
 then
   mkdir -p $ROOT
 fi
-
-
-# Get the source directory
-SRC=$ROOT
 
 
 ##########
@@ -288,7 +283,7 @@ SRC=$ROOT
 
 
 # Get the uBoot install script
-if [ ! -f /tmp/install_uboot_mtd0.sh ];
+if [ ! -f /tmp/install_uboot_mtd0.sh ]
 then
   wget -P /tmp $URL_UBOOT
   chmod +x /tmp/install_uboot_mtd0.sh
@@ -338,7 +333,7 @@ if [ ! -e /usr/sbin/debootstrap ]; then
   cd /tmp/debootstrap
   wget -O debootstrap.deb $URL_DEBOOTSTRAP
   ar xv debootstrap.deb
-  tar -xzvf data.tar.gz
+  tar xzvf data.tar.gz
 
   if [ "$RO_ROOT" = "1" ]; then
     mount -o remount,rw /
@@ -375,26 +370,30 @@ if [ "$?" -ne "0" ]; then
 fi
 
 
-cat <<END > $ROOT/etc/apt/apt.conf
+echo "deb http://security.debian.org $RELEASE/updates main" >> $ROOT/etc/apt/sources.list
+
+cat <<END > $ROOT/etc/apt/apt.conf.d/50doozan
+// Conserve disk/flash space by not installing extra packages.
 APT::Install-Recommends "0";
 APT::Install-Suggests "0";
 END
-
-chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T kernel  -C none -a 0x00008000 -e 0x00008000 -n Linux-$KERNEL_VERSION -d /boot/vmlinuz-$KERNEL_VERSION /boot/uImage
-chroot /tmp/debian /usr/bin/mkimage -A arm -O linux -T ramdisk -C gzip -a 0x00000000 -e 0x00000000 -n initramfs-$KERNEL_VERSION -d /boot/initrd.img-$KERNEL_VERSION /boot/uInitrd
-
 
 echo debian > $ROOT/etc/hostname
 echo LANG=C > $ROOT/etc/default/locale
 
 cat <<END > $ROOT/etc/fw_env.config
+# Configuration file for fw_(printenv/saveenv) utility.
+# Up to two entries are valid; in this case the redundant
+# environment sector is assumed present.
+# Note that "Number of sectors" is ignored on NOR.
+
 # MTD device name	Device offset	Env. size	Flash sector size	Number of sectors
-/dev/mtd0 0xc0000 0x20000 0x20000
+/dev/mtd0		0xc0000		0x20000		0x20000
 END
 
-cat <<END > $ROOT/etc/network/interfaces
-auto lo eth0
-iface lo inet loopback
+cat <<END >> $ROOT/etc/network/interfaces
+
+auto eth0
 iface eth0 inet dhcp
 END
 
@@ -402,30 +401,19 @@ cat <<END > $ROOT/etc/fstab
 # /etc/fstab: static file system information.
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
-/dev/root      /               ext2    noatime,errors=remount-ro 0 1
-$SWAP_DEV      none            swap    sw                0       0
-tmpfs          /tmp            tmpfs   defaults          0       0
+/dev/root       /               ext2    noatime,errors=remount-ro 0 1
+$SWAP_DEV       none            swap    sw              0       0
 END
 
-cat <<END > $ROOT/etc/kernel/postinst.d/zz-flash-kernel
-#!/bin/sh
-
-version="$1"
-bootopt=""
-
-# passing the kernel version is required
-[ -z "${version}" ] && exit 0
-
-echo "Running flash-kernel ${version}"
-flash-kernel ${version}
-END
-chmod +x $ROOT/etc/kernel/postinst.d/zz-flash-kernel
-
+# allow login on the serial port, and disable standard console terminals
 echo 'T0:2345:respawn:/sbin/getty -L ttyS0 115200 linux' >> $ROOT/etc/inittab
 sed -i 's/^\([1-6]:.* tty[1-6]\)/#\1/' $ROOT/etc/inittab
 
-echo HWCLOCKACCESS=no >> $ROOT/etc/default/rcS
-echo CONCURRENCY=shell >> $ROOT/etc/default/rcS
+# device does not have a hardware clock
+sed -i 's/^#*\(HWCLOCKACCESS\)=.*$/\1=no/' $ROOT/etc/default/hwclock
+
+# use a tmpfs for /tmp
+sed -i 's/^#*\(RAMTMP\)=.*$/\1=yes/' $ROOT/etc/default/tmpfs
 
 if [ -e $ROOT/etc/blkid.tab ]; then
   rm $ROOT/etc/blkid.tab
@@ -437,7 +425,10 @@ if [ -e $ROOT/etc/mtab ]; then
 fi
 ln -s /proc/mounts $ROOT/etc/mtab
 
-echo "root:\$1\$XPo5vyFS\$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::" > $ROOT/etc/shadow
+# root password is 'root'
+sed -i 's,^root:.*$,root:$1$XPo5vyFS$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::,' $ROOT/etc/shadow
+
+chroot $ROOT /usr/bin/apt-get clean
 
 
 
@@ -463,7 +454,7 @@ echo ""
 echo -n "Reboot now? [Y/n] "
 
 read IN
-if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ];
+if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ]
 then
   /sbin/reboot
 fi

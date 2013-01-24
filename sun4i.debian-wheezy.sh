@@ -61,7 +61,7 @@ ARCH=armhf
 COMPONENTS=main,non-free
 
 # if you want to install additional packages, add them to the end of this list
-BASE_PACKAGES=module-init-tools,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,uboot-mkimage,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant,firmware-realtek,wireless-tools
+BASE_PACKAGES=kmod,udev,netbase,ifupdown,iproute,openssh-server,dhcpcd,iputils-ping,wget,net-tools,ntpdate,u-boot-tools,vim-tiny,dialog,busybox-static,initramfs-tools,less,ca-certificates,wpasupplicant,firmware-realtek,wireless-tools
 
 # Install mini GUI by default
 INSTALL_MINI_GUI=1
@@ -85,7 +85,7 @@ SWAP_DEV=/dev/mmcblk0p3
 RO_ROOT=0
 
 TIMESTAMP=$(date +"%d%m%Y%H%M%S")
-touch /sbin/$TIMESTAMP
+touch /sbin/$TIMESTAMP 2>/dev/null
 if [ ! -f /sbin/$TIMESTAMP ]; then
   RO_ROOT=1
 else
@@ -179,7 +179,7 @@ install ()
       touch "$file_dest" 2> /dev/null
     fi
     if [ "$?" -ne "0" ]; then
-      local is_readonly=0
+      local is_readonly=1
       mount -o remount,rw /
     fi
     rm -f "$file_dest" 2> /dev/null
@@ -222,7 +222,7 @@ if ! which chroot >/dev/null; then
 fi
 
 if [ -x /usr/bin/perl ]; then
-  if [ "`/usr/bin/perl -le 'print $ENV{PATH}`" == "" ]; then
+  if [ "`/usr/bin/perl -le 'print $ENV{PATH}'`" = "" ]; then
     echo ""
     echo "Your perl subsystem does not have support for \$ENV{}"
     echo "and must be disabled for debootstrap to work"
@@ -316,7 +316,7 @@ if [ "$NOPROMPT" != "1" ]; then
   echo -n "If everything looks good, type 'ok' to continue: "
 
   read IS_OK
-  if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ];
+  if [ "$IS_OK" != "OK" -a "$IS_OK" != "Ok" -a "$IS_OK" != "ok" ]
   then
     echo "Exiting..."
     exit
@@ -325,7 +325,7 @@ fi
 
 
 # Create the mount point if it doesn't already exist
-if [ ! -f $ROOT ];
+if [ ! -d $ROOT ]
 then
   mkdir -p $ROOT
 fi
@@ -365,7 +365,7 @@ if [ ! -e /usr/sbin/debootstrap ]; then
   cd /tmp/debootstrap
   wget -O debootstrap.deb $DEBOOTSTRAP_URL
   ar xv debootstrap.deb
-  tar -xzvf data.tar.gz
+  tar xzvf data.tar.gz
 
   if [ "$RO_ROOT" = "1" ]; then
     mount -o remount,rw /
@@ -409,9 +409,9 @@ cat <<END > $ROOT/etc/fstab
 # /etc/fstab: static file system information.
 #
 # <file system> <mount point>   <type>  <options>       <dump>  <pass>
-$ROOT_DEV      /               ext3    noatime,errors=remount-ro 0 1
-$SWAP_DEV      none            swap    sw                0       0
-tmpfs          /tmp            tmpfs   defaults          0       0
+$ROOT_DEV       /               ext3    noatime,errors=remount-ro 0 1
+$SWAP_DEV       none            swap    sw              0       0
+tmpfs           /tmp            tmpfs   defaults        0       0
 END
 
 
@@ -441,7 +441,7 @@ if [ $INSTALL_MINI_GUI ]; then
 
   # Configure .profile to run startx
   cat<<EOF | cat - $ROOT/root/.profile > $ROOT/root/.profile.tmp
-if [ -z "\$DISPLAY" ] && [ \$(tty) == /dev/tty6 ]; then
+if [ -z "\$DISPLAY" ] && [ \$(tty) = /dev/tty6 ]; then
     startx
     exit 0
 fi
@@ -474,8 +474,8 @@ EOF
 
 fi
 
-echo HWCLOCKACCESS=yes >> $ROOT/etc/default/rcS
-echo CONCURRENCY=shell >> $ROOT/etc/default/rcS
+# device has a hardware clock
+sed -i 's/^#*\(HWCLOCKACCESS\)=.*$/\1=yes/' $ROOT/etc/default/hwclock
 
 if [ -e $ROOT/etc/blkid.tab ]; then
   rm $ROOT/etc/blkid.tab
@@ -487,7 +487,10 @@ if [ -e $ROOT/etc/mtab ]; then
 fi
 ln -s /proc/mounts $ROOT/etc/mtab
 
-echo "root:\$1\$XPo5vyFS\$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::" > $ROOT/etc/shadow
+# root password is 'root'
+sed -i 's,^root:.*$,root:$1$XPo5vyFS$iJPfS62vFNO09QUIUknpm.:14360:0:99999:7:::,' $ROOT/etc/shadow
+
+chroot $ROOT /usr/bin/apt-get clean
 
 
 # The update-initramfs needs to be able to find the device associated with the rootfs
@@ -558,7 +561,7 @@ if [ "$NOPROMPT" != "1" ]; then
   echo -n "Reboot now? [Y/n] "
 
   read IN
-  if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ];
+  if [ "$IN" = "" -o "$IN" = "y" -o "$IN" = "Y" ]
   then
     /sbin/reboot
   fi
