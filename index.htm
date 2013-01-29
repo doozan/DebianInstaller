@@ -2,6 +2,7 @@
 <html>
 <head>
 
+<meta http-equiv="Content-Type" content="text/html;charset=us-ascii" >
 <meta name="description" content="How to install Debian Linux on your Dockstar, GoFlex or Pogoplug NAS">
 <meta name="keywords" content="GoFlex,NAS,Dockstar,Linux,Pogo,Pogoplug,Seagate">
 
@@ -24,7 +25,7 @@
 <body>
 <h2>Unlocking your Dockstar, GoFlex, or Pogoplug</h2>
 
-<p>This guide will replace the locked <a href="/uboot/">bootloader</a> on your device with a new version that can boot from a variety of locations, including USB drives.  The installer will create a simple <a href="http://debian.org">Debian</a> Linux installation on your external USB drive.  From there, you can install any of the <a href="http://packages.debian.org/squeeze/">25,000+ packages</a> from the Debian repository.  If you decide that you don't like Debian and want to use the old Pogoplug software, simply unplug your USB drive and reboot.</p>
+<p>This guide will replace the locked <a href="/uboot/">bootloader</a> on your device with a new version that can boot from a variety of locations, including USB drives.  The installer will create a simple <a href="http://debian.org">Debian</a> Linux installation on your external USB drive.  From there, you can install any of the <a href="http://packages.debian.org/wheezy/">25,000+ packages</a> from the Debian repository.  If you decide that you don't like Debian and want to use the old Pogoplug software, simply unplug your USB drive and reboot.</p>
 
 <p>After you've installed Debian, please visit the <a href="http://forum.doozan.com">forums</a> for additional project ideas and support.</p>
 
@@ -73,12 +74,11 @@ export PATH=$PATH:/usr/sbin:/sbin
 vi /etc/apt/sources.list
 </div>
 
-<a name="troubleshooting">
-<h3>Troubleshooting</h3>
+<h3><a name="troubleshooting"></a>Troubleshooting</h3>
 
 <p>Most boot problems are caused by bad USB drives.  In general, flash drives boot more reliably than hard drives.</p>
 <p>If you're having trouble, it's usually wise to try using a different flash drive.</p>
-<p>For more information on user-tested drives, see this <a href="http://forum.doozan.com/read.php?2,1915">discussion</a> in the forum.<p>
+<p>For more information on user-tested drives, see this <a href="http://forum.doozan.com/read.php?2,1915">discussion</a> in the forum.</p>
 <p>Many problems can be diagnosed by looking at the uBoot console.  If you don't have a serial connection to your device, you can still view the console by configuring <a href="http://forum.doozan.com/read.php?3,14,14">netconsole.</a></p>
 
 <h3>Forum</h3>
