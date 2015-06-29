@@ -1,5 +1,8 @@
 # Unlocking your Dockstar, GoFlex, or Pogoplug
 
+## This is mostly copy and paste from the index.htm file in the repo and changed to markdown formart.  The credit goes to Jeff
+
+
 This guide will replace the locked [bootloader](http://forum.doozan.com/uboot/) on your device with a new version that can boot from a variety of locations,
 including USB drives.  
 The installer will create a simple [Debian](http://debian.org) Linux installation on your external USB drive.  
