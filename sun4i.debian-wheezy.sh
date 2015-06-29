@@ -48,7 +48,7 @@ PKGDETAILS_URL="$MIRROR/debian/pkgdetails"
 A10_DISPLAY=/sbin/a10_display
 A10_DISPLAY_URL=$MIRROR/a10/a10_display
 
-DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | head -n1)
+DEBOOTSTRAP_VERSION=$(wget -q "$DEB_MIRROR/pool/main/d/debootstrap/?C=M;O=D" -O- | grep -o 'debootstrap[^"]*all.deb' | tail -n1)
 DEBOOTSTRAP_URL="$DEB_MIRROR/pool/main/d/debootstrap/$DEBOOTSTRAP_VERSION"
 
 # Where should the temporary 'debian root' be mounted
@@ -363,6 +363,7 @@ fi
 if [ ! -e /usr/sbin/debootstrap ]; then
   mkdir /tmp/debootstrap
   cd /tmp/debootstrap
+  rm -f debootstrap.deb data.tar.gz
   wget -O debootstrap.deb $DEBOOTSTRAP_URL
   ar xv debootstrap.deb
   tar xzvf data.tar.gz

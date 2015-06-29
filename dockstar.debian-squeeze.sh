@@ -333,6 +333,7 @@ fi
 if [ ! -e /usr/sbin/debootstrap ]; then
   mkdir /tmp/debootstrap
   cd /tmp/debootstrap
+  rm -f debootstrap.deb data.tar.gz
   wget -O debootstrap.deb $URL_DEBOOTSTRAP
   ar xv debootstrap.deb
   tar xzvf data.tar.gz
